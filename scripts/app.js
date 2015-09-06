@@ -12,21 +12,47 @@ function Init(event) {
     miniVideo.style.position = "fixed";
     miniVideo.style.right = (window.innerWidth - content.offsetWidth) / 2 + "px";
     miniVideo.style.bottom = "15px";
-    miniVideo.style.cursor = "pointer";
+    miniVideo.style.cursor = "move";
     miniVideo.style.boxShadow = "0px 0px 5px black";
     miniVideo.style.borderRadius = "8px";
     miniVideo.style.display = "none";
-    document.getElementById('watch7-main').appendChild(miniVideo);
-    var video = document.getElementsByClassName('html5-main-video')[0];
-    var timer = null;
-    miniVideo.addEventListener('click', function () {
+    var Moveable = false;
+    miniVideo.onmousedown = function (event) {
+        if (event.offsetX <= 32 && event.offsetY <= 32)
+            Moveable = true;
+    };
+    miniVideo.onmouseup = function (event) {
+        Moveable = false;
+    };
+    //miniVideo.onmouseout = miniVideo.onmouseup;
+    miniVideo.onmousemove = function (event) {
+        if (event.offsetX > 32 || event.offsetY > 32) {
+            this.style.cursor = "pointer";
+        }
+        else {
+            this.style.cursor = "move";
+        }
+    };
+    window.onmousemove = function (event) {
+        console.log(event);
+        if (!Moveable)
+            return;
+        miniVideo.style.right = parseInt(miniVideo.style.right) - event.movementX + "px";
+        miniVideo.style.bottom = parseInt(miniVideo.style.bottom) - event.movementY + "px";
+    };
+    miniVideo.onclick = function (event) {
+        if (event.offsetX <= 32 && event.offsetY <= 32)
+            return;
         if (!video.paused) {
             video.pause();
         }
         else {
             video.play();
         }
-    }, false);
+    };
+    document.getElementById('watch7-main').appendChild(miniVideo);
+    var video = document.getElementsByClassName('html5-main-video')[0];
+    var timer = null;
     function StartMiniPlayer() {
         if (timer)
             return; //已經啟動
