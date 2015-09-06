@@ -45,7 +45,6 @@ function Init(event?) {
     }
 
     window.onmousemove = function (event) {
-        console.log(event);
         if (!Moveable) return;
         miniVideo.style.right = parseInt(miniVideo.style.right) - event.movementX + "px";
         miniVideo.style.bottom = parseInt(miniVideo.style.bottom) - event.movementY + "px";
