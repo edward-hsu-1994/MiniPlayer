@@ -1,0 +1,6 @@
+D:\YoutubeMiniPlayer\bin\YoutubeMiniPlayer.dll.config
+D:\YoutubeMiniPlayer\bin\YoutubeMiniPlayer.dll
+D:\YoutubeMiniPlayer\bin\YoutubeMiniPlayer.pdb
+D:\YoutubeMiniPlayer\obj\Debug\YoutubeMiniPlayer.csprojResolveAssemblyReference.cache
+D:\YoutubeMiniPlayer\obj\Debug\YoutubeMiniPlayer.dll
+D:\YoutubeMiniPlayer\obj\Debug\YoutubeMiniPlayer.pdb
