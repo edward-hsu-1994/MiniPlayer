@@ -33,9 +33,11 @@ function CreateMiniPlayer() {
 function ChangeControllerIcon(Status) {
     document.getElementById('PlayCtrl').style.background = "url('" + chrome.extension.getURL('images/controller/' + PlayStatus[Status] + '.png') + "')";
 }
+var timer = null;
 function Init(event) {
     if (document.getElementById("MiniPlayer") != null)
         return;
+    window.clearInterval(timer);
     var MiniPlayer = CreateMiniPlayer();
     var PlayCtrl = document.getElementById('PlayCtrl');
     console.log("YMP開始初始化");
@@ -58,7 +60,6 @@ function Init(event) {
     };
     PlayCtrl.onmousemove = window.onmousemove;
     var video = document.getElementsByClassName('html5-main-video')[0];
-    var timer = null;
     PlayCtrl.onclick = function () {
         if (!video.paused) {
             video.pause();
@@ -75,12 +76,15 @@ function Init(event) {
     video.onpause = (video.onended = function () {
         ChangeControllerIcon(PlayStatus.Play);
     });
+    var VideoScale;
     function StartMiniPlayer() {
-        if (timer)
-            return; //已經啟動
+        if (timer) {
+            StopMiniPlayer();
+        }
         timer = setInterval(function () {
             var Context = MiniPlayer.getCanvas().getContext('2d');
-            var VideoScale = parseInt(video.style.width) / parseInt(video.style.height);
+            if (!VideoScale)
+                VideoScale = parseInt(video.style.width) / parseInt(video.style.height);
             MiniPlayer.getCanvas().width = MiniPlayer.getCanvas().height * VideoScale;
             Context.drawImage(video, 0, 0, MiniPlayer.getCanvas().width, MiniPlayer.getCanvas().height);
         }, 60);
@@ -90,14 +94,15 @@ function Init(event) {
         timer = null;
     }
     window.onscroll = function () {
-        if (video.ended || window.scrollY < (parseInt(video.style.height) + 10) / 2) {
-            MiniPlayer.getCanvas().style.display = "none";
+        if (window.scrollY < (parseInt(video.style.height) + 10) / 2) {
+            MiniPlayer.style.display = "none";
             StopMiniPlayer();
             return;
         }
-        MiniPlayer.getCanvas().style.display = "initial";
+        MiniPlayer.style.display = "initial";
         StartMiniPlayer();
     };
+    window.onscroll(null);
     console.log("YMP初始化完成");
 }
 document.addEventListener('DOMNodeInserted', Init);
