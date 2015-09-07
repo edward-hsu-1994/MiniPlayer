@@ -4,3 +4,9 @@ D:\YoutubeMiniPlayer\bin\YoutubeMiniPlayer.pdb
 D:\YoutubeMiniPlayer\obj\Debug\YoutubeMiniPlayer.csprojResolveAssemblyReference.cache
 D:\YoutubeMiniPlayer\obj\Debug\YoutubeMiniPlayer.dll
 D:\YoutubeMiniPlayer\obj\Debug\YoutubeMiniPlayer.pdb
+C:\Users\XuPeiYao\Documents\GitHub\YoutubeMiniPlayer\bin\YoutubeMiniPlayer.dll.config
+C:\Users\XuPeiYao\Documents\GitHub\YoutubeMiniPlayer\bin\YoutubeMiniPlayer.dll
+C:\Users\XuPeiYao\Documents\GitHub\YoutubeMiniPlayer\bin\YoutubeMiniPlayer.pdb
+C:\Users\XuPeiYao\Documents\GitHub\YoutubeMiniPlayer\obj\Debug\YoutubeMiniPlayer.csprojResolveAssemblyReference.cache
+C:\Users\XuPeiYao\Documents\GitHub\YoutubeMiniPlayer\obj\Debug\YoutubeMiniPlayer.dll
+C:\Users\XuPeiYao\Documents\GitHub\YoutubeMiniPlayer\obj\Debug\YoutubeMiniPlayer.pdb

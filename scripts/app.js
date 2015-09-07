@@ -1,75 +1,88 @@
+var PlayStatus;
+(function (PlayStatus) {
+    PlayStatus[PlayStatus["Play"] = 0] = "Play";
+    PlayStatus[PlayStatus["Pause"] = 1] = "Pause";
+})(PlayStatus || (PlayStatus = {}));
+;
 console.clear();
+function StringToElements(HTML) {
+    var temp = document.createElement('div');
+    temp.innerHTML = HTML;
+    var result = new Array();
+    for (var i = 0; i < temp.childNodes.length; i++) {
+        result.push(temp.childNodes.item(i));
+    }
+    return result;
+}
+function CreateMiniPlayer() {
+    console.info("產生迷你播放器...開始");
+    var Request = new XMLHttpRequest();
+    Request.open("Get", chrome.extension.getURL("templets/MiniPlayer.html"), false);
+    Request.send();
+    var MiniPlayerTemplet = Request.responseText;
+    var MiniPlayer = StringToElements(MiniPlayerTemplet)[0];
+    var YoutubeContent = document.getElementById('content');
+    MiniPlayer.style.right = (window.innerWidth - YoutubeContent.offsetWidth) / 2 + "px";
+    document.getElementById('watch7-main').appendChild(MiniPlayer);
+    console.info("產生迷你播放器...完成");
+    MiniPlayer.getCanvas = function () {
+        return document.getElementById('MiniPlayerCanvas');
+    };
+    return MiniPlayer;
+}
+function ChangeControllerIcon(Status) {
+    document.getElementById('PlayCtrl').style.background = "url('" + chrome.extension.getURL('images/controller/' + PlayStatus[Status] + '.png') + "')";
+}
 function Init(event) {
     if (document.getElementById("MiniPlayer") != null)
         return;
+    var MiniPlayer = CreateMiniPlayer();
+    var PlayCtrl = document.getElementById('PlayCtrl');
     console.log("YMP開始初始化");
-    var content = document.getElementById('content');
-    var miniVideo = document.createElement('canvas');
-    miniVideo.id = "MiniPlayer";
-    miniVideo.width = 380;
-    miniVideo.height = 200;
-    miniVideo.style.zIndex = "999999";
-    miniVideo.style.position = "fixed";
-    miniVideo.style.right = (window.innerWidth - content.offsetWidth) / 2 + "px";
-    miniVideo.style.bottom = "15px";
-    miniVideo.style.cursor = "move";
-    miniVideo.style.boxShadow = "0px 0px 5px black";
-    miniVideo.style.borderRadius = "8px";
-    miniVideo.style.display = "none";
     var Moveable = false;
-    
-    //#region Mouse Event
-    miniVideo.onmousedown = function (event) {
-        if (event.offsetX <= 32 && event.offsetY <= 32)
-            Moveable = true;
+    MiniPlayer.onmousedown = function (event) {
+        document.body.onselectstart = function () { return false; };
+        Moveable = true;
     };
-    miniVideo.onmouseup = function (event) {
+    MiniPlayer.onmouseup = function (event) {
+        document.body.onselectstart = null;
         Moveable = false;
     };
-    //miniVideo.onmouseout = miniVideo.onmouseup;
-    miniVideo.onmousemove = function (event) {
-        if (event.offsetX > 32 || event.offsetY > 32) {
-            this.style.cursor = "pointer";
-        }
-        else {
-            this.style.cursor = "move";
-        }
-    };
+    PlayCtrl.onmousemove =
+        window.onmouseup = MiniPlayer.onmouseup;
     window.onmousemove = function (event) {
         if (!Moveable)
             return;
-        miniVideo.style.right = parseInt(miniVideo.style.right) - event.movementX + "px";
-        miniVideo.style.bottom = parseInt(miniVideo.style.bottom) - event.movementY + "px";
+        MiniPlayer.style.right = parseInt(window.getComputedStyle(document.getElementById("MiniPlayer")).right) - event.movementX + "px";
+        MiniPlayer.style.bottom = parseInt(window.getComputedStyle(document.getElementById("MiniPlayer")).bottom) - event.movementY + "px";
     };
-    miniVideo.onclick = function (event) {
-        if (event.offsetX <= 32 && event.offsetY <= 32)
-            return;
+    PlayCtrl.onmousemove = window.onmousemove;
+    var video = document.getElementsByClassName('html5-main-video')[0];
+    var timer = null;
+    PlayCtrl.onclick = function () {
         if (!video.paused) {
             video.pause();
+            ChangeControllerIcon(PlayStatus.Play);
         }
         else {
             video.play();
+            ChangeControllerIcon(PlayStatus.Pause);
         }
     };
-    //#endregion
-    //#region Touch Event
-    miniVideo.ontouchstart = miniVideo.onmousedown;
-    miniVideo.ontouchend = miniVideo.onmouseup;
-    miniVideo.ontouchmove = miniVideo.onmousemove;
-    window.ontouchmove = window.onmousemove;
-    //#endregion
-    
-    document.getElementById('watch7-main').appendChild(miniVideo);
-    var video = document.getElementsByClassName('html5-main-video')[0];
-    var timer = null;
+    video.onplaying = function () {
+        ChangeControllerIcon(PlayStatus.Pause);
+    };
+    video.onpause = (video.onended = function () {
+        ChangeControllerIcon(PlayStatus.Play);
+    });
     function StartMiniPlayer() {
         if (timer)
             return; //已經啟動
         timer = setInterval(function () {
-            var context = miniVideo.getContext('2d');
-            var k = parseInt(video.style.width) / parseInt(video.style.height);
-            miniVideo.width = miniVideo.height * k;
-            context.drawImage(video, 0, 0, miniVideo.width, miniVideo.height);
+            var Context = MiniPlayer.getCanvas().getContext('2d');
+            var VideoScale = parseInt(video.style.width) / parseInt(video.style.height);
+            MiniPlayer.getCanvas().width = MiniPlayer.getCanvas().height * VideoScale;
+            Context.drawImage(video, 0, 0, MiniPlayer.getCanvas().width, MiniPlayer.getCanvas().height);
         }, 60);
     }
     function StopMiniPlayer() {
@@ -78,15 +91,15 @@ function Init(event) {
     }
     window.onscroll = function () {
         if (video.ended || window.scrollY < (parseInt(video.style.height) + 10) / 2) {
-            miniVideo.style.display = "none";
+            MiniPlayer.getCanvas().style.display = "none";
             StopMiniPlayer();
             return;
         }
-        miniVideo.style.display = "initial";
+        MiniPlayer.getCanvas().style.display = "initial";
         StartMiniPlayer();
     };
     console.log("YMP初始化完成");
 }
-Init();
 document.addEventListener('DOMNodeInserted', Init);
+Init();
 //# sourceMappingURL=app.js.map

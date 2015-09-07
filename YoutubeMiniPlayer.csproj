@@ -20,11 +20,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="images\icon.png" />
+    <Content Include="templets\MiniPlayer.html" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="manifest.json" />
     <Content Include="README.md" />
+    <Content Include="styles\app.less" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

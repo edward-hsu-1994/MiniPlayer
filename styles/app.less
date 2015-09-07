@@ -1,0 +1,36 @@
+﻿#MiniPlayerCanvas{
+    border-radius: 8px;
+}
+
+#MiniPlayer{
+    padding:0;
+    height:200px;
+    border-radius: 8px;
+    z-index: 999999;
+    position: fixed !important;
+    bottom: 15px; 
+    box-shadow: black 0 0 5px;
+    cursor:move;
+}
+
+#PlayCtrl{
+    -webkit-filter: drop-shadow(0 0 10px #000);
+    filter: drop-shadow(0 0 10px #000);
+    
+    width:76px;
+    height:76px;
+
+    position:absolute;
+    left:50%;
+    top:50%;
+
+    margin-left:-38px;
+    margin-top:-38px;
+    cursor:pointer;
+    opacity:0.01;
+    -webkit-transition: all .20s linear;
+}
+#PlayCtrl:hover{
+    opacity:1;
+    -webkit-transition: all .20s linear;
+}

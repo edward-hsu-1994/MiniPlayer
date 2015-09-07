@@ -1,24 +1,31 @@
 {
-    "name": "Youtube Mini Player",
-    "short_name": "YMP",
-    "version": "1.0.3",
-    "description": "針對Youtube製作的迷你播放視窗，讓使用者在觀看留言時依然可以觀看影片。",
-    "content_scripts": [
-        {
-            "matches": [ "*://*.youtube.com/watch?*" ],
-            "js": [
-                "scripts/app.js"
-            ]
-        }
-    ],
-    "permissions": [
-        "declarativeContent",
-        "tabs",
-        "*://*.youtube.com/watch?*"
-    ],
-    "icons" : {
-      "48" : "images/icon.png",
-      "128" : "images/icon.png"
-    },
-    "manifest_version": 2
+  "name": "Youtube Mini Player",
+  "short_name": "YMP",
+  "version": "1.0.3",
+  "description": "針對Youtube製作的迷你播放視窗，讓使用者在觀看留言時依然可以觀看影片。",
+  "content_scripts": [
+    {
+      "matches": [ "*://*.youtube.com/watch?*" ],
+      "js": [
+        "scripts/app.js"
+      ],
+      "css": [
+        "styles/app.less"
+      ]
+    }
+  ],
+  "permissions": [
+    "declarativeContent",
+    "tabs",
+    "*://*.youtube.com/watch?*"
+  ],
+  "web_accessible_resources": [
+    "templets/*",
+    "images/*"
+  ],
+  "icons": {
+    "48": "images/icon.png",
+    "128": "images/icon.png"
+  },
+  "manifest_version": 2
 }
