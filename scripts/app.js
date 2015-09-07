@@ -17,6 +17,8 @@ function Init(event) {
     miniVideo.style.borderRadius = "8px";
     miniVideo.style.display = "none";
     var Moveable = false;
+    
+    //#region Mouse Event
     miniVideo.onmousedown = function (event) {
         if (event.offsetX <= 32 && event.offsetY <= 32)
             Moveable = true;
@@ -49,6 +51,14 @@ function Init(event) {
             video.play();
         }
     };
+    //#endregion
+    //#region Touch Event
+    miniVideo.ontouchstart = miniVideo.onmousedown;
+    miniVideo.ontouchend = miniVideo.onmouseup;
+    miniVideo.ontouchmove = miniVideo.onmousemove;
+    window.ontouchmove = window.onmousemove;
+    //#endregion
+    
     document.getElementById('watch7-main').appendChild(miniVideo);
     var video = document.getElementsByClassName('html5-main-video')[0];
     var timer = null;
