@@ -1,110 +1,164 @@
-var PlayStatus;
-(function (PlayStatus) {
-    PlayStatus[PlayStatus["Play"] = 0] = "Play";
-    PlayStatus[PlayStatus["Pause"] = 1] = "Pause";
-})(PlayStatus || (PlayStatus = {}));
-;
 console.clear();
-function StringToElements(HTML) {
-    var temp = document.createElement('div');
-    temp.innerHTML = HTML;
-    var result = new Array();
-    for (var i = 0; i < temp.childNodes.length; i++) {
-        result.push(temp.childNodes.item(i));
+var Extension = (function () {
+    function Extension() {
     }
-    return result;
-}
-function CreateMiniPlayer() {
-    console.info("產生迷你播放器...開始");
-    var Request = new XMLHttpRequest();
-    Request.open("Get", chrome.extension.getURL("templets/MiniPlayer.html"), false);
-    Request.send();
-    var MiniPlayerTemplet = Request.responseText;
-    var MiniPlayer = StringToElements(MiniPlayerTemplet)[0];
-    var YoutubeContent = document.getElementById('content');
-    MiniPlayer.style.right = (window.innerWidth - YoutubeContent.offsetWidth) / 2 + "px";
-    document.getElementById('watch7-main').appendChild(MiniPlayer);
-    console.info("產生迷你播放器...完成");
-    MiniPlayer.getCanvas = function () {
-        return document.getElementById('MiniPlayerCanvas');
+    Extension.ConvertStringToNode = function (HTML) {
+        return Extension.ConvertStringToNodes(HTML)[0];
     };
-    return MiniPlayer;
-}
-function ChangeControllerIcon(Status) {
-    document.getElementById('PlayCtrl').style.background = "url('" + chrome.extension.getURL('images/controller/' + PlayStatus[Status] + '.png') + "')";
-}
-var timer = null;
-function Init(event) {
-    if (document.getElementById("MiniPlayer") != null)
-        return;
-    window.clearInterval(timer);
-    var MiniPlayer = CreateMiniPlayer();
-    var PlayCtrl = document.getElementById('PlayCtrl');
-    console.log("YMP開始初始化");
-    var Moveable = false;
-    MiniPlayer.onmousedown = function (event) {
-        document.body.onselectstart = function () { return false; };
-        Moveable = true;
+    Extension.ConvertStringToNodes = function (HTML) {
+        var temp = document.createElement('div');
+        temp.innerHTML = HTML;
+        var result = new Array();
+        for (var i = 0; i < temp.childNodes.length; i++) {
+            result.push(temp.childNodes.item(i));
+        }
+        return result;
     };
-    MiniPlayer.onmouseup = function (event) {
-        document.body.onselectstart = null;
-        Moveable = false;
+    Extension.IsWatchPage = function () {
+        return location.pathname.toLowerCase() == "/watch";
     };
-    PlayCtrl.onmousemove =
-        window.onmouseup = MiniPlayer.onmouseup;
-    window.onmousemove = function (event) {
-        if (!Moveable)
-            return;
-        MiniPlayer.style.right = parseInt(window.getComputedStyle(document.getElementById("MiniPlayer")).right) - event.movementX + "px";
-        MiniPlayer.style.bottom = parseInt(window.getComputedStyle(document.getElementById("MiniPlayer")).bottom) - event.movementY + "px";
+    return Extension;
+})();
+var MiniPlayer = (function () {
+    function MiniPlayer(Id) {
+        this.Id = Id;
+        this.CreateElement();
+        var THIS = this;
+        this.Timer = setInterval(function () {
+            if (!Extension.IsWatchPage())
+                return; //不是播放頁則不建立迷你播放器
+            if (!THIS.HasElement) {
+                THIS.CreateElement();
+            }
+            THIS.Update();
+        }, 60);
+        document.addEventListener("mousemove", function (e) {
+            if (!THIS._Moveable)
+                return;
+            THIS.MiniPlayer.style.right = parseInt(window.getComputedStyle(THIS.MiniPlayer).right) - e.movementX + "px";
+            THIS.MiniPlayer.style.bottom = parseInt(window.getComputedStyle(THIS.MiniPlayer).bottom) - e.movementY + "px";
+        });
+        document.addEventListener("mouseup", function (e) {
+            THIS._Moveable = false;
+            document.body.onselectstart = null; //重新允許選取文字
+        });
+        window.onscroll = function () {
+            if (window.scrollY < (parseInt(THIS.YoutubePlayer.style.height) + 10) / 2) {
+                THIS.Visable = false;
+                return;
+            }
+            THIS.Visable = true;
+        };
+    }
+    MiniPlayer.prototype.CreateElement = function () {
+        var MiniPlayer = this.GetMiniPlayerNode("templets/MiniPlayer.html");
+        MiniPlayer.setAttribute("id", this.Id);
+        //#region 初始化位置
+        var YoutubeContent = document.getElementById('content');
+        MiniPlayer.style.right = (window.innerWidth - YoutubeContent.offsetWidth) / 2 + "px";
+        //#endregion
+        document.getElementById('watch7-main').appendChild(MiniPlayer);
+        this.Scaling(); //顯示比例調整
+        this.AddMoveEvent();
+        this.AddControllerEvent();
     };
-    PlayCtrl.onmousemove = window.onmousemove;
-    var video = document.getElementsByClassName('html5-main-video')[0];
-    PlayCtrl.onclick = function () {
-        if (!video.paused) {
-            video.pause();
-            ChangeControllerIcon(PlayStatus.Play);
+    MiniPlayer.prototype.Update = function () {
+        var Context = this.Canvas.getContext('2d');
+        Context.drawImage(this.YoutubePlayer, 0, 0, this.Canvas.width, this.Canvas.height);
+        this.Controller.style.background = "url('" + chrome.extension.getURL('images/controller/' + (!this.YoutubePlayer.paused ? "pause" : "play") + '.png') + "')";
+        if (document.getElementById("caption-window-0") != null) {
+            document.querySelector(".Subtitle span").innerText = document.getElementById("caption-window-0").innerText;
         }
         else {
-            video.play();
-            ChangeControllerIcon(PlayStatus.Pause);
+            document.querySelector(".Subtitle span").innerText = "";
         }
     };
-    video.onplaying = function () {
-        ChangeControllerIcon(PlayStatus.Pause);
+    MiniPlayer.prototype.Scaling = function () {
+        var VideoScale = parseInt(this.YoutubePlayer.style.width) / parseInt(this.YoutubePlayer.style.height);
+        this.Canvas.width = this.Canvas.height * VideoScale;
     };
-    video.onpause = (video.onended = function () {
-        ChangeControllerIcon(PlayStatus.Play);
+    Object.defineProperty(MiniPlayer.prototype, "MiniPlayer", {
+        get: function () {
+            return document.getElementById(this.Id);
+        },
+        enumerable: true,
+        configurable: true
     });
-    var VideoScale;
-    function StartMiniPlayer() {
-        if (timer) {
-            StopMiniPlayer();
-        }
-        timer = setInterval(function () {
-            var Context = MiniPlayer.getCanvas().getContext('2d');
-            if (!VideoScale)
-                VideoScale = parseInt(video.style.width) / parseInt(video.style.height);
-            MiniPlayer.getCanvas().width = MiniPlayer.getCanvas().height * VideoScale;
-            Context.drawImage(video, 0, 0, MiniPlayer.getCanvas().width, MiniPlayer.getCanvas().height);
-        }, 60);
-    }
-    function StopMiniPlayer() {
-        window.clearInterval(timer);
-        timer = null;
-    }
-    window.onscroll = function () {
-        if (window.scrollY < (parseInt(video.style.height) + 10) / 2) {
-            MiniPlayer.style.display = "none";
-            StopMiniPlayer();
-            return;
-        }
-        MiniPlayer.style.display = "initial";
-        StartMiniPlayer();
+    Object.defineProperty(MiniPlayer.prototype, "YoutubePlayer", {
+        get: function () {
+            return document.getElementsByClassName('html5-main-video')[0];
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MiniPlayer.prototype, "HasElement", {
+        get: function () {
+            return this.MiniPlayer != null;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MiniPlayer.prototype, "Canvas", {
+        get: function () {
+            return document.querySelector("#" + this.Id + " > .PlayerCanvas");
+            ;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MiniPlayer.prototype, "Controller", {
+        get: function () {
+            return document.querySelector("#" + this.Id + " > .Controller");
+            ;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MiniPlayer.prototype, "Visable", {
+        get: function () {
+            return this._Visable;
+        },
+        set: function (value) {
+            if (value) {
+                this.MiniPlayer.style.display = null;
+            }
+            else {
+                this.MiniPlayer.style.display = "none";
+            }
+            this._Visable = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    MiniPlayer.prototype.AddMoveEvent = function () {
+        var THIS = this;
+        this.MiniPlayer.addEventListener("mousedown", function (e) {
+            THIS._Moveable = true;
+            document.body.onselectstart = function () { return false; }; //防止移動時選取到文字區域
+        });
+        this.MiniPlayer.addEventListener("mouseup", function (e) {
+            THIS._Moveable = false;
+            document.body.onselectstart = null; //重新允許選取文字
+        });
     };
-    window.onscroll(null);
-    console.log("YMP初始化完成");
-}
-document.addEventListener('DOMNodeInserted', Init);
-Init();
+    MiniPlayer.prototype.AddControllerEvent = function () {
+        var THIS = this;
+        this.Controller.onclick = function (e) {
+            if (THIS.YoutubePlayer.paused) {
+                THIS.YoutubePlayer.play();
+            }
+            else {
+                THIS.YoutubePlayer.pause();
+            }
+        };
+    };
+    MiniPlayer.prototype.GetMiniPlayerNode = function (Path) {
+        var Request = new XMLHttpRequest();
+        Request.open("Get", chrome.extension.getURL("templets/MiniPlayer.html"), false);
+        Request.send();
+        return Extension.ConvertStringToNode(Request.responseText);
+    };
+    return MiniPlayer;
+})();
+var MiniPlayerEntity = new MiniPlayer("MiniPlayerEntity");
 //# sourceMappingURL=app.js.map

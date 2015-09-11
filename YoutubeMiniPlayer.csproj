@@ -19,6 +19,8 @@
     <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="images\controller\pause.png" />
+    <Content Include="images\controller\play.png" />
     <Content Include="images\icon.png" />
     <Content Include="templets\MiniPlayer.html" />
     <Content Include="web.config" />
