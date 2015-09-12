@@ -22,7 +22,6 @@ var Extension = (function () {
 var MiniPlayer = (function () {
     function MiniPlayer(Id) {
         this.Id = Id;
-        this.CreateElement();
         var THIS = this;
         this.Timer = setInterval(function () {
             if (!Extension.IsWatchPage())
@@ -31,7 +30,7 @@ var MiniPlayer = (function () {
                 THIS.CreateElement();
             }
             THIS.Update();
-        }, 60);
+        }, 70);
         document.addEventListener("mousemove", function (e) {
             if (!THIS._Moveable)
                 return;
@@ -43,11 +42,7 @@ var MiniPlayer = (function () {
             document.body.onselectstart = null; //重新允許選取文字
         });
         window.onscroll = function () {
-            if (window.scrollY < (parseInt(THIS.YoutubePlayer.style.height) + 10) / 2) {
-                THIS.Visable = false;
-                return;
-            }
-            THIS.Visable = true;
+            THIS.OnSroll.call(THIS);
         };
     }
     MiniPlayer.prototype.CreateElement = function () {
@@ -57,12 +52,27 @@ var MiniPlayer = (function () {
         var YoutubeContent = document.getElementById('content');
         MiniPlayer.style.right = (window.innerWidth - YoutubeContent.offsetWidth) / 2 + "px";
         //#endregion
-        document.getElementById('watch7-main').appendChild(MiniPlayer);
-        this.Scaling(); //顯示比例調整
-        this.AddMoveEvent();
-        this.AddControllerEvent();
+        if (document.getElementById('watch7-main'))
+            document.getElementById('watch7-main').appendChild(MiniPlayer);
+        if (this.HasElement) {
+            this.Scaling(); //顯示比例調整
+            this.AddMoveEvent();
+            this.AddControllerEvent();
+            this.OnSroll();
+        }
+    };
+    MiniPlayer.prototype.OnSroll = function () {
+        if (!Extension.IsWatchPage() || !this.HasElement)
+            return;
+        if (window.scrollY < (parseInt(this.YoutubePlayer.style.height) + 10) / 2) {
+            this.Visable = false;
+            return;
+        }
+        this.Visable = true;
     };
     MiniPlayer.prototype.Update = function () {
+        if (!this.HasElement)
+            return;
         var Context = this.Canvas.getContext('2d');
         Context.drawImage(this.YoutubePlayer, 0, 0, this.Canvas.width, this.Canvas.height);
         this.Controller.style.background = "url('" + chrome.extension.getURL('images/controller/' + (!this.YoutubePlayer.paused ? "pause" : "play") + '.png') + "')";

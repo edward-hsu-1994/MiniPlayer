@@ -30,8 +30,7 @@ class MiniPlayer {//播放器物件
     private _Moveable: boolean;//物件目前是否為可移動狀態
     constructor(Id: string) {
         this.Id = Id;
-        this.CreateElement();
-
+        
         var THIS = this;
         this.Timer = setInterval(function () {
             if (!Extension.IsWatchPage()) return;//不是播放頁則不建立迷你播放器
@@ -39,7 +38,7 @@ class MiniPlayer {//播放器物件
                 THIS.CreateElement();
             }
             THIS.Update();
-        }, 60);
+        }, 70);
 
 
         document.addEventListener("mousemove", (e) => {
@@ -52,11 +51,7 @@ class MiniPlayer {//播放器物件
             document.body.onselectstart = null;//重新允許選取文字
         });
         window.onscroll = function () {
-            if (window.scrollY < (parseInt(THIS.YoutubePlayer.style.height) + 10) / 2) {
-                THIS.Visable = false;
-                return;
-            }
-            THIS.Visable = true;
+            THIS.OnSroll.call(THIS);
         }        
     }
 
@@ -69,14 +64,27 @@ class MiniPlayer {//播放器物件
         MiniPlayer.style.right = (window.innerWidth - YoutubeContent.offsetWidth) / 2 + "px";
         //#endregion
 
-        document.getElementById('watch7-main').appendChild(MiniPlayer);
+        if (document.getElementById('watch7-main'))document.getElementById('watch7-main').appendChild(MiniPlayer);
 
-        this.Scaling();//顯示比例調整
-        this.AddMoveEvent();
-        this.AddControllerEvent();
+        if (this.HasElement) {
+            this.Scaling();//顯示比例調整
+            this.AddMoveEvent();
+            this.AddControllerEvent();
+            this.OnSroll();
+        }
     }
     
+    public OnSroll() {
+        if (!Extension.IsWatchPage() || !this.HasElement) return;
+        if (window.scrollY < (parseInt(this.YoutubePlayer.style.height) + 10) / 2) {
+            this.Visable = false;
+            return;
+        }
+        this.Visable = true;
+    }
+
     public Update() {
+        if (!this.HasElement) return;
         var Context: CanvasRenderingContext2D = this.Canvas.getContext('2d');
         Context.drawImage(<HTMLImageElement>this.YoutubePlayer, 0, 0, this.Canvas.width, this.Canvas.height);
 
