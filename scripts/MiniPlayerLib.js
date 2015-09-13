@@ -29,13 +29,13 @@ var Extension = (function () {
     return Extension;
 })();
 var MiniPlayer = (function () {
-    function MiniPlayer(YoutubePlayerQuerySelector) {
-        this.Id = Extension.CreateGUID();
+    function MiniPlayer(YoutubePlayerQuerySelector, ParentQuerySelector) {
+        this.Id = "MiniPlayer_" + Extension.CreateGUID();
         this.YoutubePlayerQuerySelector = YoutubePlayerQuerySelector;
+        this.ParentQuerySelector = ParentQuerySelector;
         var THIS = this;
         this.Timer = setInterval(function () {
-            if (!Extension.IsWatchPage())
-                return; //不是播放頁則不建立迷你播放器
+            //if (!Extension.IsWatchPage()) return;//不是播放頁則不建立迷你播放器
             if (!THIS.HasElement) {
                 THIS.CreateElement();
             }
@@ -55,35 +55,70 @@ var MiniPlayer = (function () {
             if (THIS.OnSroll)
                 THIS.OnSroll.call(THIS, e);
         });
+        this.CreateElement();
     }
     MiniPlayer.prototype.CreateElement = function () {
+        var THIS = this;
+        this.YoutubePlayer.addEventListener("playing", function (e) {
+            THIS.Scaling();
+            if (THIS.OnPlay)
+                THIS.OnPlay.call(THIS, e);
+        });
+        this.YoutubePlayer.addEventListener("pause", function (e) {
+            if (THIS.OnPause)
+                THIS.OnPause.call(THIS, e);
+        });
+        this.YoutubePlayer.addEventListener("ended", function (e) {
+            if (THIS.OnEnded)
+                THIS.OnEnded.call(THIS, e);
+        });
         var MiniPlayer = this.GetMiniPlayerNode("templets/MiniPlayer.html");
         MiniPlayer.setAttribute("id", this.Id);
         //#region 初始化位置
         var YoutubeContent = document.getElementById('content');
+        if (YoutubeContent == null)
+            YoutubeContent = { offsetWidth: window.innerWidth - 40 };
         MiniPlayer.style.right = (window.innerWidth - YoutubeContent.offsetWidth) / 2 + "px";
         //#endregion
-        if (document.getElementById('watch7-main'))
-            document.getElementById('watch7-main').appendChild(MiniPlayer);
+        try {
+            if (this.ParentQuerySelector)
+                document.querySelector(this.ParentQuerySelector).appendChild(MiniPlayer);
+        }
+        catch (e) { }
         if (this.HasElement) {
             this.Scaling(); //顯示比例調整
             this.AddMoveEvent();
             this.AddControllerEvent();
             if (this.OnSroll)
                 this.OnSroll(null);
+            this.MiniPlayer.addEventListener("click", function (e) {
+                if (THIS.OnClick)
+                    THIS.OnClick.call(THIS, e);
+            });
         }
     };
     MiniPlayer.prototype.Update = function () {
-        if (!this.HasElement)
-            return;
-        var Context = this.Canvas.getContext('2d');
-        Context.drawImage(this.YoutubePlayer, 0, 0, this.Canvas.width, this.Canvas.height);
-        this.Controller.style.background = "url('" + chrome.extension.getURL('images/controller/' + (!this.YoutubePlayer.paused ? "pause" : "play") + '.png') + "')";
-        if (document.getElementById("caption-window-0") != null) {
-            document.querySelector("#" + this.Id + " .Subtitle span").innerText = document.getElementById("caption-window-0").innerText;
+        try {
+            if (!this.HasElement)
+                return;
+            var Context = this.Canvas.getContext('2d');
+            Context.drawImage(this.YoutubePlayer, 0, 0, this.Canvas.width, this.Canvas.height);
+            this.Controller.style.background = "url('" + chrome.extension.getURL('images/controller/' + (!this.YoutubePlayer.paused ? "pause" : "play") + '.png') + "')";
+            if (document.getElementById("caption-window-0") != null) {
+                document.querySelector("#" + this.Id + " .Subtitle span").innerText = document.getElementById("caption-window-0").innerText;
+            }
+            else {
+                document.querySelector("#" + this.Id + " .Subtitle span").innerText = "";
+            }
+            var element = document.querySelector(this.YoutubePlayerQuerySelector);
+            if (element.contentWindow.document.querySelector("#caption-window-0") != null) {
+                document.querySelector("#" + this.Id + " .Subtitle span").innerText = element.contentWindow.document.querySelector("#caption-window-0").innerText;
+            }
+            else {
+                document.querySelector("#" + this.Id + " .Subtitle span").innerText = "";
+            }
         }
-        else {
-            document.querySelector("#" + this.Id + " .Subtitle span").innerText = "";
+        catch (e) {
         }
     };
     MiniPlayer.prototype.Scaling = function () {
@@ -99,7 +134,29 @@ var MiniPlayer = (function () {
     });
     Object.defineProperty(MiniPlayer.prototype, "YoutubePlayer", {
         get: function () {
-            return document.querySelector(this.YoutubePlayerQuerySelector);
+            var element = document.querySelector(this.YoutubePlayerQuerySelector);
+            //console.log(element.tagName);
+            if (element.tagName == "VIDEO") {
+                return document.querySelector(this.YoutubePlayerQuerySelector);
+            }
+            else {
+                return element.contentWindow.document.querySelector(".html5-main-video");
+            }
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MiniPlayer.prototype, "IsPlaying", {
+        get: function () {
+            return !this.YoutubePlayer.paused;
+        },
+        set: function (value) {
+            if (value) {
+                this.YoutubePlayer.play();
+            }
+            else {
+                this.YoutubePlayer.pause();
+            }
         },
         enumerable: true,
         configurable: true
@@ -157,12 +214,7 @@ var MiniPlayer = (function () {
     MiniPlayer.prototype.AddControllerEvent = function () {
         var THIS = this;
         this.Controller.onclick = function (e) {
-            if (THIS.YoutubePlayer.paused) {
-                THIS.YoutubePlayer.play();
-            }
-            else {
-                THIS.YoutubePlayer.pause();
-            }
+            THIS.IsPlaying = !THIS.IsPlaying;
         };
     };
     MiniPlayer.prototype.GetMiniPlayerNode = function (Path) {
@@ -173,4 +225,4 @@ var MiniPlayer = (function () {
     };
     return MiniPlayer;
 })();
-//# sourceMappingURL=app.js.map
+//# sourceMappingURL=miniplayerlib.js.map

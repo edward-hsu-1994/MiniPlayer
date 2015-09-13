@@ -7,7 +7,18 @@
     {
       "matches": [ "*://*.youtube.com/*" ],
       "js": [
-        "scripts/app.js"
+        "scripts/MiniPlayerLib.js",
+        "scripts/YoutubeExtension.js"
+      ],
+      "css": [
+        "styles/app.less"
+      ]
+    },
+    {
+      "matches": [ "<all_urls>" ],
+      "js": [
+        "scripts/MiniPlayerLib.js",
+        "scripts/EmbedExtension.js"
       ],
       "css": [
         "styles/app.less"
@@ -16,7 +27,8 @@
   ],
   "permissions": [
     "declarativeContent",
-    "*://*.youtube.com/*"
+    "*://*.youtube.com/*",
+    "<all_urls>"
   ],
   "web_accessible_resources": [
     "templets/*",
