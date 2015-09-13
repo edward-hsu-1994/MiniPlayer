@@ -32,16 +32,16 @@ class Extension {//擴充功能靜態物件
 
 class MiniPlayer {//播放器物件
     private Id: string;
-    private YoutubePlayerQuerySelector: string;
+    private YoutubePlayerElement: HTMLVideoElement;
     private ParentQuerySelector: string;
     //取得Youtube影片播放器
     private Timer: any;
     private _Visable: boolean;//物件目前是否為可見狀態
     private _Moveable: boolean;//物件目前是否為可移動狀態
 
-    constructor(YoutubePlayerQuerySelector: string, ParentQuerySelector: string) {
+    constructor(YoutubePlayerElement: HTMLVideoElement, ParentQuerySelector: string) {
         this.Id = "MiniPlayer_" + Extension.CreateGUID();
-        this.YoutubePlayerQuerySelector = YoutubePlayerQuerySelector;
+        this.YoutubePlayerElement = YoutubePlayerElement;
         this.ParentQuerySelector = ParentQuerySelector;
 
         var THIS = this;
@@ -88,7 +88,7 @@ class MiniPlayer {//播放器物件
         MiniPlayer.setAttribute("id", this.Id);
         //#region 初始化位置
         var YoutubeContent : any = document.getElementById('content');
-        if (YoutubeContent == null) YoutubeContent = { offsetWidth: window.innerWidth - 40 };
+        if (YoutubeContent == null) YoutubeContent = { offsetWidth: window.innerWidth - 80 };
         MiniPlayer.style.right = (window.innerWidth - YoutubeContent.offsetWidth) / 2 + "px";
         //#endregion
         
@@ -105,6 +105,8 @@ class MiniPlayer {//播放器物件
             this.MiniPlayer.addEventListener("click", function (e) {
                 if (THIS.OnClick) THIS.OnClick.call(THIS, e);
             })
+
+            this.Visable = this._Visable;//reset;
         }
     }
     
@@ -132,13 +134,13 @@ class MiniPlayer {//播放器物件
                 (<HTMLElement>document.querySelector("#" + this.Id + " .Subtitle span")).innerText = "";
             }
         
-        
+            /*
             var element = document.querySelector(this.YoutubePlayerQuerySelector);
             if (<HTMLVideoElement>(<HTMLIFrameElement>element).contentWindow.document.querySelector("#caption-window-0") != null) {
                 (<HTMLElement>document.querySelector("#" + this.Id + " .Subtitle span")).innerText = (<HTMLElement>(<HTMLIFrameElement>element).contentWindow.document.querySelector("#caption-window-0")).innerText;
             } else {
                 (<HTMLElement>document.querySelector("#" + this.Id + " .Subtitle span")).innerText = "";
-            }
+            }*/
         } catch (e) {
             //console.log(this.YoutubePlayer);
         }
@@ -154,13 +156,7 @@ class MiniPlayer {//播放器物件
     }
 
     public get YoutubePlayer(): HTMLVideoElement {
-        var element = document.querySelector(this.YoutubePlayerQuerySelector);
-        //console.log(element.tagName);
-        if (element.tagName == "VIDEO") {
-            return <HTMLVideoElement>document.querySelector(this.YoutubePlayerQuerySelector);
-        } else {
-            return <HTMLVideoElement>(<HTMLIFrameElement>element).contentWindow.document.querySelector(".html5-main-video")
-        }
+        return this.YoutubePlayerElement;
     }
 
     public get IsPlaying(): boolean {

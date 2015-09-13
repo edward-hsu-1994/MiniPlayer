@@ -29,9 +29,9 @@ var Extension = (function () {
     return Extension;
 })();
 var MiniPlayer = (function () {
-    function MiniPlayer(YoutubePlayerQuerySelector, ParentQuerySelector) {
+    function MiniPlayer(YoutubePlayerElement, ParentQuerySelector) {
         this.Id = "MiniPlayer_" + Extension.CreateGUID();
-        this.YoutubePlayerQuerySelector = YoutubePlayerQuerySelector;
+        this.YoutubePlayerElement = YoutubePlayerElement;
         this.ParentQuerySelector = ParentQuerySelector;
         var THIS = this;
         this.Timer = setInterval(function () {
@@ -77,7 +77,7 @@ var MiniPlayer = (function () {
         //#region 初始化位置
         var YoutubeContent = document.getElementById('content');
         if (YoutubeContent == null)
-            YoutubeContent = { offsetWidth: window.innerWidth - 40 };
+            YoutubeContent = { offsetWidth: window.innerWidth - 80 };
         MiniPlayer.style.right = (window.innerWidth - YoutubeContent.offsetWidth) / 2 + "px";
         //#endregion
         try {
@@ -95,6 +95,7 @@ var MiniPlayer = (function () {
                 if (THIS.OnClick)
                     THIS.OnClick.call(THIS, e);
             });
+            this.Visable = this._Visable; //reset;
         }
     };
     MiniPlayer.prototype.Update = function () {
@@ -106,13 +107,6 @@ var MiniPlayer = (function () {
             this.Controller.style.background = "url('" + chrome.extension.getURL('images/controller/' + (!this.YoutubePlayer.paused ? "pause" : "play") + '.png') + "')";
             if (document.getElementById("caption-window-0") != null) {
                 document.querySelector("#" + this.Id + " .Subtitle span").innerText = document.getElementById("caption-window-0").innerText;
-            }
-            else {
-                document.querySelector("#" + this.Id + " .Subtitle span").innerText = "";
-            }
-            var element = document.querySelector(this.YoutubePlayerQuerySelector);
-            if (element.contentWindow.document.querySelector("#caption-window-0") != null) {
-                document.querySelector("#" + this.Id + " .Subtitle span").innerText = element.contentWindow.document.querySelector("#caption-window-0").innerText;
             }
             else {
                 document.querySelector("#" + this.Id + " .Subtitle span").innerText = "";
@@ -134,14 +128,7 @@ var MiniPlayer = (function () {
     });
     Object.defineProperty(MiniPlayer.prototype, "YoutubePlayer", {
         get: function () {
-            var element = document.querySelector(this.YoutubePlayerQuerySelector);
-            //console.log(element.tagName);
-            if (element.tagName == "VIDEO") {
-                return document.querySelector(this.YoutubePlayerQuerySelector);
-            }
-            else {
-                return element.contentWindow.document.querySelector(".html5-main-video");
-            }
+            return this.YoutubePlayerElement;
         },
         enumerable: true,
         configurable: true

@@ -1,5 +1,5 @@
 /// <reference path="miniplayerlib.ts" />
-var MiniPlayerEntity = new MiniPlayer(".html5-main-video:first-child", "#watch7-main");
+var MiniPlayerEntity = new MiniPlayer(document.querySelector(".html5-main-video:first-child"), "#watch7-main");
 MiniPlayerEntity.OnSroll = function (e) {
     if (!Extension.IsWatchPage() || !this.HasElement)
         return;

@@ -1,4 +1,5 @@
 /// <reference path="youtubeextension.ts" />
+/// <reference path="miniplayerlib.ts" />
 function IsYoutubePage() {
     try {
         if (MiniPlayerEntity)
@@ -8,6 +9,40 @@ function IsYoutubePage() {
     }
     catch (e) {
         return false;
+    }
+}
+function CreateYoutubePlayer(iframe) {
+    try {
+        if (iframe.getAttribute("ymp") != null)
+            return null; //已經實作MiniPlayer
+        var playerElement = iframe.contentWindow.document.querySelector(".html5-main-video");
+        if (playerElement) {
+            iframe.setAttribute("ymp", p.toString()); //Lock
+            var mp = new MiniPlayer(playerElement, "body");
+            mp.Visable = false;
+            mp.OnPlay = function () {
+                this.Visable = true;
+                ScrollEvent();
+            };
+            mp.OnPause = mp.OnEnded = function () {
+                this.Visable = false;
+            };
+            player.push(mp);
+            p++;
+            return mp;
+        }
+        var subiframes = iframe.contentWindow.document.getElementsByTagName("iframe");
+        if (subiframes.length > 0) {
+            for (var index in subiframes) {
+                var DeepResult = CreateYoutubePlayer(subiframes[index]);
+                if (DeepResult)
+                    return DeepResult;
+            }
+        }
+        return null;
+    }
+    catch (e) {
+        return null;
     }
 }
 function getElementPosition(target) {
@@ -35,6 +70,8 @@ function getElementPosition(target) {
 function ScrollEvent() {
     for (var item in iframe) {
         var position = getElementPosition(iframe[item]);
+        if (item == 0)
+            console.log(item);
         var ITEM = iframe[item];
         if (player[item].IsPlaying && (position.top < 0 - ITEM.clientHeight / 2 ||
             position.top > window.innerHeight - ITEM.clientHeight / 2)) {
@@ -52,35 +89,12 @@ var player = new Array();
 var iframe = new Array();
 if (!IsYoutubePage()) {
     a = setInterval(function () {
-        function RGetYoutubePlayer(iframe) {
-            if (iframe.getAttribute("ymp") != null)
-                return null; //已經實作MiniPlayer
-            if (element.contentWindow.document.querySelector(".html5-main-video")) {
-                element.setAttribute("ymp", p.toString()); //Lock
-            }
-        }
         var embeds = document.getElementsByTagName("iframe");
         for (var i = 0; i < embeds.length; i++) {
-            var element = embeds[i];
-            if (element.src.indexOf("www.youtube.com") == -1 ||
-                element.getAttribute("ymp") != null ||
-                !element.contentWindow.document.querySelector(".html5-main-video")) {
-                continue;
+            if (CreateYoutubePlayer(embeds[i])) {
+                iframe.push(embeds[i]);
             }
-            element.setAttribute("ymp", p.toString());
-            var temp = new MiniPlayer('[ymp="' + p.toString() + '"]', "body");
-            temp.Visable = false;
-            temp.OnPlay = function () {
-                ScrollEvent();
-                //this.Visable = true;
-            };
-            temp.OnPause = temp.OnEnded = function () {
-                this.Visable = false;
-            };
-            player.push(temp);
-            iframe.push(element);
-            //new MiniPlayer('[youtubeMiniPlayerId="' + i.toString() + '"]', "body");
-            p++;
+            ;
         }
     }, 1000);
     window.addEventListener("scroll", ScrollEvent);

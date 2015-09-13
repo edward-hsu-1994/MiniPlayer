@@ -1,5 +1,5 @@
 ﻿/// <reference path="miniplayerlib.ts" />
-var MiniPlayerEntity = new MiniPlayer(".html5-main-video:first-child", "#watch7-main");
+var MiniPlayerEntity = new MiniPlayer(<HTMLVideoElement>document.querySelector(".html5-main-video:first-child"), "#watch7-main");
 MiniPlayerEntity.OnSroll = function (e) {
     if (!Extension.IsWatchPage() || !this.HasElement) return;
     if (window.scrollY < (parseInt(this.YoutubePlayer.style.height) + 10) / 2) {

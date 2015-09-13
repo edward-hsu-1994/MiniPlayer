@@ -1,10 +1,49 @@
 ﻿/// <reference path="youtubeextension.ts" />
+/// <reference path="miniplayerlib.ts" />
+
 function IsYoutubePage() {
     try {
         if (MiniPlayerEntity) return true;
         else return false;
     }catch (e) {
         return false;
+    }
+}
+
+function CreateYoutubePlayer(iframe: HTMLIFrameElement) {
+    try {
+        if (iframe.getAttribute("ymp") != null) return null;//已經實作MiniPlayer
+
+        var playerElement = iframe.contentWindow.document.querySelector(".html5-main-video");
+        if (playerElement) {//有Youtube Player
+            iframe.setAttribute("ymp", p.toString());//Lock
+
+            var mp: MiniPlayer = new MiniPlayer(<HTMLVideoElement>playerElement, "body");
+            mp.Visable = false;
+            mp.OnPlay = function () {
+                this.Visable = true;
+                ScrollEvent();
+            }
+            mp.OnPause = mp.OnEnded = function () {
+                this.Visable = false;
+            };
+            player.push(mp);
+
+            p++;
+            return mp;
+        }
+
+        var subiframes = iframe.contentWindow.document.getElementsByTagName("iframe");
+
+        if (subiframes.length > 0) {//向底層搜尋
+            for (var index in subiframes) {
+                var DeepResult = CreateYoutubePlayer(subiframes[index]);
+                if (DeepResult) return DeepResult;
+            }
+        }
+        return null;
+    } catch (e) {
+        return null;
     }
 }
 
@@ -34,7 +73,8 @@ function getElementPosition(target) {
 function ScrollEvent() {
     for (var item in iframe) {
         var position = getElementPosition(iframe[item]);
-        var ITEM = <HTMLElement>iframe[item];
+        if (item == 0) console.log(item);
+        var ITEM = iframe[item];
         if (
             player[item].IsPlaying && (
                 position.top < 0 - ITEM.clientHeight / 2 ||
@@ -55,46 +95,13 @@ var p = 0;
 var a = 0;
 var player = new Array<MiniPlayer>();
 var iframe = new Array<HTMLIFrameElement>();
-
-
-
-
 if (!IsYoutubePage() ) {
     a = setInterval(function () {
-        function RGetYoutubePlayer(iframe: HTMLIFrameElement) {
-            if (iframe.getAttribute("ymp") != null) return null;//已經實作MiniPlayer
-
-            if (element.contentWindow.document.querySelector(".html5-main-video")) {//有Youtube Player
-                element.setAttribute("ymp", p.toString());//Lock
-            }
-        }
-
-
         var embeds = document.getElementsByTagName("iframe");
         for (var i = 0; i < embeds.length; i++) {
-            var element: HTMLIFrameElement = (<HTMLIFrameElement>embeds[i]);
-            if (element.src.indexOf("www.youtube.com") == -1 ||
-                element.getAttribute("ymp") != null ||
-                !element.contentWindow.document.querySelector(".html5-main-video")) {
-                continue;
-            }
-            
-            
-            element.setAttribute("ymp", p.toString());
-            var temp = new MiniPlayer('[ymp="' + p.toString() + '"]', "body");
-            temp.Visable = false;
-            temp.OnPlay = function () {
-                ScrollEvent();
-                //this.Visable = true;
-            }
-            temp.OnPause = temp.OnEnded = function () {
-                this.Visable = false;
+            if (CreateYoutubePlayer(embeds[i])) {
+                iframe.push(embeds[i]);
             };
-
-            player.push(temp);
-            iframe.push(element);
-            //new MiniPlayer('[youtubeMiniPlayerId="' + i.toString() + '"]', "body");
-            p++;
         }
     }, 1000);
 
