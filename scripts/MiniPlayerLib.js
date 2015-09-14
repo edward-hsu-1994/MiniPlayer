@@ -105,8 +105,9 @@ var MiniPlayer = (function () {
             var Context = this.Canvas.getContext('2d');
             Context.drawImage(this.YoutubePlayer, 0, 0, this.Canvas.width, this.Canvas.height);
             this.Controller.style.background = "url('" + chrome.extension.getURL('images/controller/' + (!this.YoutubePlayer.paused ? "pause" : "play") + '.png') + "')";
-            if (document.getElementById("caption-window-0") != null) {
-                document.querySelector("#" + this.Id + " .Subtitle span").innerText = document.getElementById("caption-window-0").innerText;
+            var subtitleElement = this.YoutubePlayer.ownerDocument.querySelector(".html5-video-player #caption-window-0");
+            if (subtitleElement) {
+                document.querySelector("#" + this.Id + " .Subtitle span").innerText = subtitleElement.innerText;
             }
             else {
                 document.querySelector("#" + this.Id + " .Subtitle span").innerText = "";

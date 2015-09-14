@@ -29,6 +29,7 @@
     <Content Include="manifest.json" />
     <Content Include="README.md" />
     <Content Include="styles\app.less" />
+    <Content Include="styles\subtitle.less" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

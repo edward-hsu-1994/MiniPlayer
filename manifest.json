@@ -1,8 +1,8 @@
 {
-  "name": "Youtube Mini Player",
-  "short_name": "YMP",
-  "version": "1.0.8",
-  "description": "針對Youtube製作的迷你播放視窗，讓使用者在觀看留言時依然可以觀看影片。",
+  "name": "Mini Player",
+  "short_name": "MP",
+  "version": "1.1.0",
+  "description": "針對Youtube製作的迷你播放視窗，讓使用者在觀看文章、留言時依然可以觀看影片。",
   "content_scripts": [
     {
       "matches": [ "*://*.youtube.com/*" ],
@@ -21,7 +21,8 @@
         "scripts/EmbedExtension.js"
       ],
       "css": [
-        "styles/app.less"
+        "styles/app.less",
+        "styles/subtitle.less"
       ]
     }
   ],

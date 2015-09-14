@@ -97,6 +97,10 @@ var player = new Array<MiniPlayer>();
 var iframe = new Array<HTMLIFrameElement>();
 if (!IsYoutubePage() ) {
     a = setInterval(function () {
+        if (IsYoutubePage()) {
+            clearInterval(a);
+            return;
+        }
         var embeds = document.getElementsByTagName("iframe");
         for (var i = 0; i < embeds.length; i++) {
             if (CreateYoutubePlayer(embeds[i])) {
